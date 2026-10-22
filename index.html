@@ -13,17 +13,17 @@ button:focus-visible,#command:focus-visible{outline:2px solid white;outline-offs
 #output{margin:0;font:inherit}#entry{display:flex;align-items:baseline;gap:.5ch;margin-top:.4em}#prompt{flex:none}#command{min-width:0;flex:1;border:0;outline:0;background:transparent;color:var(--ink);font:inherit;caret-color:var(--ink);padding:0;margin:0;text-shadow:inherit;border-radius:0}
 #footer{flex:none;padding:6px 12px 8px;display:flex;gap:10px;align-items:center;border-top:1px solid color-mix(in srgb,var(--ink) 20%,transparent);color:var(--ink);font:11px system-ui,sans-serif}#footer span{flex:1;opacity:.7}
 #settings{position:absolute;right:10px;top:48px;z-index:5;background:#081008;color:var(--ink);border:1px solid var(--ink);padding:14px;display:none;min-width:220px;font:14px system-ui,sans-serif;box-shadow:0 6px 30px #000}#settings.open{display:grid;gap:12px}#settings label{display:flex;justify-content:space-between;gap:15px;align-items:center}#settings input{accent-color:var(--ink)}#settings select{background:#111;color:var(--ink);border:1px solid var(--ink);padding:5px}
-@media(min-width:700px){#screen{font-size:20px;padding:32px max(30px,calc((100vw - 850px)/2))}}
+@media(min-width:700px){#screen{font-size:12px;padding:32px max(30px,calc((100vw - 850px)/2))}}
 @media(prefers-reduced-motion:no-preference){#prompt{animation:blink 1.15s steps(2) infinite}@keyframes blink{50%{opacity:.35}}}
 
 /* The beige bezel is the housing; the inset dark glass is the actual display. */
-:root{--ink:#77ef70;--glow:rgba(85,235,75,.16);--bg:#010401;--scan:.32;--glass:#010501}
-html,body{background:#bdb5a0}
-#shell{background:linear-gradient(110deg,#d7d0bd,#bcb4a0 55%,#a49a86);padding:calc(env(safe-area-inset-top) + 7px) 9px calc(env(safe-area-inset-bottom) + 7px);gap:0}
-#bar{background:transparent;border:0;color:#4b4539;padding:2px 8px 8px;font:12px "Courier New",monospace}
+:root{--ink:#77ef70;--glow:rgba(85,235,75,.16);--bg:#010401;--scan:1;--glass:#010501}
+html,body{background:#010401}
+#shell{background:#010401;padding:calc(env(safe-area-inset-top) + 7px) 9px calc(env(safe-area-inset-bottom) + 7px);gap:0}
+#bar{background:transparent;border:0;color:var(--ink);padding:2px 8px 8px;font:12px "Courier New",monospace}
 #bar strong{letter-spacing:.03em}
-button{border:1px solid #6c6250;color:#40392f;background:#d6cbb5;border-radius:2px;font:12px "Courier New",monospace;box-shadow:inset 1px 1px #f3ecdb,inset -1px -1px #968d7b}
-#screen{background:radial-gradient(ellipse at center,#061006 0%,var(--glass) 77%);border:solid 7px #332f29;border-radius:clamp(20px,5vw,38px) / clamp(15px,4vw,28px);box-shadow:inset 0 0 0 2px #121912,inset 0 0 22px 8px #000,0 0 0 3px #827a69,0 3px 8px #5c5549;padding:clamp(16px,4.5vw,32px);font-family:"Courier New",monospace;font-size:18px;line-height:1.34;overflow-x:hidden;overflow-y:auto;white-space:normal;text-shadow:0 0 3px var(--glow),0 0 9px var(--glow)}
+button{border:1px solid var(--ink);color:var(--ink);background:#010601;border-radius:2px;font:12px "Courier New",monospace;box-shadow:none}
+#screen{background:radial-gradient(ellipse at center,#061006 0%,var(--glass) 77%);border:solid 2px #244529;border-radius:clamp(20px,5vw,38px) / clamp(15px,4vw,28px);box-shadow:inset 0 0 0 2px #121912,inset 0 0 22px 8px #000,0 0 7px 2px var(--glow),0 0 17px 1px var(--glow);padding:clamp(16px,4.5vw,32px);font-family:"Courier New",monospace;font-size:12px;line-height:1.34;overflow-x:hidden;overflow-y:auto;white-space:normal;text-shadow:0 0 3px var(--glow),0 0 9px var(--glow)}
 #screen::after{position:absolute;inset:0;border-radius:inherit;background:repeating-linear-gradient(to bottom,transparent 0px,transparent 3px,rgba(0,0,0,.16) 4px);opacity:var(--scan);z-index:2}
 #screen::before{position:absolute;inset:0;border-radius:inherit;box-shadow:inset 0 0 28px 8px #000,inset 0 0 2px 2px #394238;z-index:2}
 #output{white-space:pre-wrap;overflow-wrap:break-word;word-break:normal;max-width:100%;font:inherit}
@@ -35,15 +35,21 @@ button{border:1px solid #6c6250;color:#40392f;background:#d6cbb5;border-radius:2
 #entry:focus-within #command{caret-color:var(--ink)}
 @keyframes cursorblink{50%{opacity:0}}
 #footer{background:transparent;color:#4b4539;border:0;padding:9px 6px 2px}
-#settings{top:45px;right:10px;left:10px;min-width:0;background:#d2c9b6;color:#352f27;border:2px ridge #8e8575;box-shadow:4px 5px 0 #736b5e;font:14px "Courier New",monospace}
+#settings{top:45px;right:10px;left:10px;min-width:0;background:#020902;color:var(--ink);border:1px solid var(--ink);box-shadow:0 0 10px var(--glow);font:14px "Courier New",monospace}
 #settings input{accent-color:#5d594d;max-width:45%}
 #settings button{justify-self:stretch}
 #settings label{min-height:32px}
 @media(min-width:700px){#shell{padding-left:max(9px,calc((100vw - 950px)/2));padding-right:max(9px,calc((100vw - 950px)/2))}}
-</style></head><body><main id="shell"><header id="bar"><strong>EAMON / DISK II</strong><button id="theme" type="button" aria-label="Change phosphor color">AMBER</button><button id="gear" type="button" aria-label="Display controls" aria-expanded="false">CTRL</button></header><aside id="settings" aria-label="Terminal settings"><label>Scanlines <input id="scan" type="range" min="0" max="100" value="50"></label><label>Glow <input id="glow" type="range" min="0" max="100" value="50"></label><label>Text size <input id="size" type="range" min="12" max="24" value="18"></label><button id="reset" type="button">RESET DEMO</button></aside><section id="screen" aria-label="Text adventure terminal"><pre id="output" aria-live="polite"></pre><form id="entry" autocomplete="off"><span id="prompt">]</span><input id="command" aria-label="Type a command" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="go"></form></section><footer id="footer"><span>DISK 01 · READY</span><button id="focus" type="button">TYPE</button><button id="help" type="button">HELP</button></footer></main>
+
+/* Simulated NTSC composite artifacting: RGB color fringes around white pixels. */
+#shell.tv{--ink:#f5f5f5;--glow:rgba(255,255,255,.3)}
+#shell.tv #screen{color:#f3f3f3;text-shadow:-1px 0 #27e1aa,1px 0 #a844ef,0 0 5px #a767e4}
+#shell.tv #output,#shell.tv #command{filter:drop-shadow(-.8px 0 #20d1b7) drop-shadow(.8px 0 #d35a78)}
+#shell.tv #screen::after{background:repeating-linear-gradient(to bottom,transparent 0px,transparent 2px,rgba(0,0,0,.27) 3px)}
+</style></head><body><main id="shell"><header id="bar"><strong>EAMON / DISK II</strong><button id="theme" type="button" aria-label="Change phosphor color">AMBER</button><button id="tv" type="button" aria-label="Composite television mode">T.V.</button><button id="gear" type="button" aria-label="Display controls" aria-expanded="false">CTRL</button></header><aside id="settings" aria-label="Terminal settings"><label>Scanlines <input id="scan" type="range" min="0" max="200" value="100"></label><label>Glow <input id="glow" type="range" min="0" max="100" value="50"></label><label>Text size <input id="size" type="range" min="6" max="18" value="12"></label><button id="reset" type="button">RESET DEMO</button></aside><section id="screen" aria-label="Text adventure terminal"><pre id="output" aria-live="polite"></pre><form id="entry" autocomplete="off"><span id="prompt">]</span><input id="command" aria-label="Type a command" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="go"></form></section><footer id="footer"><span>DISK 01 · READY</span><button id="focus" type="button">TYPE</button><button id="help" type="button">HELP</button></footer></main>
 <script>
 (()=>{'use strict';
-const $=id=>document.getElementById(id),out=$('output'),cmd=$('command'),screen=$('screen');let amber=false,history=[],hi=0;
+const $=id=>document.getElementById(id),out=$('output'),cmd=$('command'),screen=$('screen');let amber=false,tv=false,history=[],hi=0;
 let state={room:'hall',inventory:[],door:false,done:false};
 const rooms={hall:'YOU ARE IN THE MAIN HALL.\n\nA CLERK IS COUNTING DOORS. THERE ARE SEVEN. HIS LEDGER SAYS EIGHT.\n\nA SIGN READS: EXHIBIT 1 - THE VERB MERCHANT.\n\nEXITS: NORTH.',shop:'THE VERB MERCHANT\n\nA SMALL MAN SITS BEHIND A COUNTER.\n\nHE SELLS WORDS IN GLASS JARS.\n\nA JAR MARKED OPEN IS EMPTY.\nA JAR MARKED REMEMBER IS FULL.\n\nEXITS: SOUTH.'};
 function print(s=''){out.textContent+=(out.textContent?'\n':'')+s;requestAnimationFrame(()=>screen.scrollTop=screen.scrollHeight)}
@@ -82,6 +88,7 @@ $('entry').addEventListener('submit',e=>{e.preventDefault();const t=cmd.value;cm
 cmd.addEventListener('keydown',e=>{if(e.key==='ArrowUp'){e.preventDefault();if(hi>0)cmd.value=history[--hi]||''}if(e.key==='ArrowDown'){e.preventDefault();if(hi<history.length)hi++;cmd.value=history[hi]||''}});
 $('theme').onclick=()=>{amber=!amber;document.documentElement.style.setProperty('--ink',amber?'#ffbf00':'#77ef70');document.documentElement.style.setProperty('--glow',amber?'rgba(255,176,0,.16)':'rgba(85,235,75,.16)');$('theme').textContent=amber?'GREEN':'AMBER';localStorage.setItem('tltu-theme',amber?'amber':'green')};
 if(localStorage.getItem('tltu-theme')==='amber')$('theme').click();
+$('tv').onclick=()=>{tv=!tv;$('shell').classList.toggle('tv',tv);$('tv').setAttribute('aria-pressed',String(tv))};
 $('gear').onclick=()=>{const open=$('settings').classList.toggle('open');$('gear').setAttribute('aria-expanded',String(open))};
 $('scan').oninput=e=>document.documentElement.style.setProperty('--scan',e.target.value/100*.65);
 $('glow').oninput=e=>document.documentElement.style.setProperty('--glow',amber?'rgba(255,176,0,'+e.target.value/100+')':'rgba(75,255,110,'+e.target.value/100+')');
