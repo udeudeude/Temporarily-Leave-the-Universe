@@ -58,10 +58,10 @@ const dragon=[
 '       ____/            /',
 '      /     /\\   /\\   /',
 '     /_____/  \\_/  \\_/'
-].join('\\n');
+].join('\n');
 let splash=true;
-function boot(){splash=true;state={room:'hall',inventory:[],door:false,done:false};out.textContent='';print('THE WONDERFUL WORLD OF EAMON\\n\\n'+dragon+'\\n\\nPRESS RETURN TO CONTINUE.\\n\\nCOPYRIGHT 1985+21')}
-function execute(raw){let t=raw.trim(),v=t.toLowerCase();if(splash){splash=false;out.textContent='';print('TEMPORARILY LEAVE THE UNIVERSE\\n\\nDISK 01 - THE MUSEUM\\nCOPYRIGHT 1985+21\\n\\n'+rooms.hall+'\\n\\nTYPE HELP FOR COMMANDS.');return}print('> '+t.toUpperCase());if(!v)return;
+function boot(){splash=true;state={room:'hall',inventory:[],door:false,done:false};out.textContent='';print('THE WONDERFUL WORLD OF EAMON\n\n'+dragon+'\n\nPRESS RETURN TO CONTINUE.\n\nCOPYRIGHT 1985+21')}
+function execute(raw){let t=raw.trim(),v=t.toLowerCase();if(splash){splash=false;out.textContent='';print('TEMPORARILY LEAVE THE UNIVERSE\n\nDISK 01 - THE MUSEUM\nCOPYRIGHT 1985+21\n\n'+rooms.hall+'\n\nTYPE HELP FOR COMMANDS.');return}print('> '+t.toUpperCase());if(!v)return;
 if(['help','?'].includes(v))return print('COMMANDS: LOOK, NORTH, SOUTH, EXAMINE, TAKE, INVENTORY, TALK, OPEN, REMEMBER, HELP, CLEAR, RESTART.\n\nTRY EXAMINE LEDGER OR TALK CLERK.');
 if(v==='clear'){out.textContent='';return}
 if(v==='restart')return boot();
