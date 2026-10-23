@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover"><meta name="theme-color" content="#bdb5a0"><title>Temporarily Leave the Universe</title>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover"><meta name="theme-color" content="#010401"><title>Temporarily Leave the Universe</title>
 <style>
 :root{color-scheme:dark;--ink:#85ff9a;--glow:rgba(85,235,75,.35);--bg:#020802;font-family:"Courier New",monospace}
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;background:#080b08;overflow:hidden}
@@ -60,6 +60,29 @@ button{border:1px solid var(--ink);color:var(--ink);background:#010601;border-ra
 #splash .continue{margin-top:20px}
 #shell.tv #screen{box-shadow:inset 0 0 2px 2px rgba(230,230,255,.42),inset 0 0 16px 4px rgba(160,110,230,.17)}
 @media(min-width:600px){#splash{font-size:15px}#splash .dragon{max-height:360px}}
+
+/* Final screen geometry: glass reaches the shell's usable edges. */
+#shell{padding-left:0;padding-right:0}
+#bar,#footer{padding-left:14px;padding-right:14px}
+#screen{border-radius:0;border:0;box-shadow:inset 0 0 1px 1px var(--edge),inset 0 0 7px 2px var(--edge-soft),inset 0 0 24px 4px var(--edge-faint);background:#010401}
+#screen::before{border-radius:0;box-shadow:inset 0 0 14px 2px rgba(0,0,0,.22)}
+#splash{background:#010401}
+#shell{--edge:rgba(100,255,110,.38);--edge-soft:rgba(90,230,100,.17);--edge-faint:rgba(70,200,90,.055)}
+#shell.amber{--edge:rgba(255,184,0,.4);--edge-soft:rgba(255,160,0,.18);--edge-faint:rgba(255,130,0,.06)}
+#shell.tv{--edge:rgba(220,220,235,.32);--edge-soft:rgba(140,110,210,.12);--edge-faint:rgba(150,110,200,.04)}
+#shell.amber #screen{background:#030200}
+#shell.amber #screen::before{box-shadow:inset 0 0 14px 2px rgba(0,0,0,.2)}
+#shell.tv #screen{box-shadow:inset 0 0 1px 1px var(--edge),inset 0 0 7px 2px var(--edge-soft),inset 0 0 24px 4px var(--edge-faint)}
+#shell.tv #bar,#shell.tv #footer,#shell.tv #settings,#shell.tv #splash{color:#f4f4f4;text-shadow:-1px 0 #43d6b6,1px 0 #ba65e5,0 0 5px #af7fdf}
+#shell.tv button{color:#f4f4f4;text-shadow:-1px 0 #43d6b6,1px 0 #ba65e5,0 0 4px #af7fdf;box-shadow:-.6px 0 #41d7b0,.6px 0 #a95ddb}
+#shell.tv #splash .splash-intro,#shell.tv #splash .splash-credit,#shell.tv #splash .continue{filter:drop-shadow(-.8px 0 #39cfaa) drop-shadow(.8px 0 #d258d5)}
+#entry{position:relative}
+#entry:before{display:none!important}
+#command{appearance:none;-webkit-appearance:none;outline:none!important;border:0!important;box-shadow:none!important;background:transparent!important;caret-color:transparent!important}
+#command:focus{outline:none!important;border:0!important;box-shadow:none!important;caret-color:transparent!important}
+#entry:after{content:"";position:absolute;pointer-events:none;left:0;top:0;width:.63em;height:1.12em;background:var(--ink);opacity:.95;animation:cursorblink 1.05s steps(2,start) infinite;box-shadow:0 0 4px var(--glow)}
+#entry.has-text:after{display:none}
+#command::selection{background:var(--ink);color:#000}
 </style></head><body><main id="shell"><header id="bar"><strong>EAMON</strong><button id="theme" type="button" aria-label="Cycle display mode">AMBER</button><button id="gear" type="button" aria-label="Display controls" aria-expanded="false">CTRL</button></header><aside id="settings" aria-label="Terminal settings"><label>Scanlines <input id="scan" type="range" min="0" max="200" value="100"></label><label>Glow <input id="glow" type="range" min="0" max="100" value="50"></label><label>Text size <input id="size" type="range" min="6" max="18" value="12"></label><button id="reset" type="button">RESET DEMO</button></aside><section id="screen" aria-label="Text adventure terminal"><div id="splash" aria-label="Eamon opening screen"><div class="splash-layout"><div class="splash-intro"><div>Welcome to</div><div class="splash-title">EAMON</div><p>The computerized<br>fantasy role-playing<br>system designed for<br>the Apple II.</p></div><img class="dragon" src="dragon.svg" alt="Dragon illustration"></div><div class="splash-credit">EAMON is a creation of Donald Brown<br>Non-commercial distribution welcomed</div><div class="continue">PRESS RETURN TO CONTINUE</div></div><pre id="output" aria-live="polite"></pre><form id="entry" autocomplete="off"><span id="prompt">]</span><input id="command" aria-label="Type a command" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="go"></form></section><footer id="footer"><span>READY</span><button id="focus" type="button">TYPE</button><button id="help" type="button">HELP</button></footer></main>
 <script>
 (()=>{'use strict';
@@ -98,10 +121,11 @@ if(v==='open door'){if(state.room==='hall'&&state.door){state.done=true;return p
 if(v.startsWith('examine')||v.startsWith('look at'))return print('YOU FIND NOTHING UNUSUAL. WHICH IS UNUSUAL.');
 return print("I DON'T UNDERSTAND THAT COMMAND.");
 }
-$('entry').addEventListener('submit',e=>{e.preventDefault();const t=cmd.value;cmd.value='';if(t.trim()){history.push(t.toUpperCase());hi=history.length}execute(t);cmd.focus()});
+cmd.addEventListener('input',()=>document.getElementById('entry').classList.toggle('has-text',cmd.value.length>0));
+$('entry').addEventListener('submit',e=>{e.preventDefault();const t=cmd.value;cmd.value='';$('entry').classList.remove('has-text');if(t.trim()){history.push(t.toUpperCase());hi=history.length}execute(t);cmd.focus()});
 cmd.addEventListener('keydown',e=>{if(e.key==='ArrowUp'){e.preventDefault();if(hi>0)cmd.value=history[--hi]||''}if(e.key==='ArrowDown'){e.preventDefault();if(hi<history.length)hi++;cmd.value=history[hi]||''}});
 const modes=['green','amber','tv'];let mode=modes.includes(localStorage.getItem('tltu-theme'))?localStorage.getItem('tltu-theme'):'green';
-function applyMode(){amber=mode==='amber';tv=mode==='tv';$('shell').classList.toggle('tv',tv);document.documentElement.style.setProperty('--ink',tv?'#f5f5f5':amber?'#ffbf00':'#77ef70');const strength=Number($('glow').value)/100;document.documentElement.style.setProperty('--glow',tv?'rgba(245,245,245,'+strength+')':amber?'rgba(255,176,0,'+strength+')':'rgba(85,235,75,'+strength+')');$('theme').textContent=mode==='green'?'AMBER':mode==='amber'?'T.V.':'GREEN';$('theme').setAttribute('aria-label','Display: '+mode.toUpperCase()+'. Change to '+$('theme').textContent);localStorage.setItem('tltu-theme',mode)}
+function applyMode(){amber=mode==='amber';tv=mode==='tv';$('shell').classList.toggle('tv',tv);$('shell').classList.toggle('amber',amber);document.documentElement.style.setProperty('--ink',tv?'#f5f5f5':amber?'#ffbf00':'#77ef70');const strength=Number($('glow').value)/100;document.documentElement.style.setProperty('--glow',tv?'rgba(245,245,245,'+strength+')':amber?'rgba(255,176,0,'+strength+')':'rgba(85,235,75,'+strength+')');$('theme').textContent=mode==='green'?'AMBER':mode==='amber'?'T.V.':'GREEN';$('theme').setAttribute('aria-label','Display: '+mode.toUpperCase()+'. Change to '+$('theme').textContent);localStorage.setItem('tltu-theme',mode)}
 $('theme').onclick=()=>{mode=modes[(modes.indexOf(mode)+1)%3];applyMode()};applyMode();
 $('gear').onclick=()=>{const open=$('settings').classList.toggle('open');$('gear').setAttribute('aria-expanded',String(open))};
 $('scan').oninput=e=>document.documentElement.style.setProperty('--scan',e.target.value/100*.65);
