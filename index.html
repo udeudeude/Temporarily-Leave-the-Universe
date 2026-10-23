@@ -161,7 +161,7 @@ function execute(raw){let t=raw.trim(),v=t.toLowerCase();if(splash){splash=false
 if(['green','amber','tv','t.v.','display green','display amber','display tv','display t.v.'].includes(v)){mode=v.includes('amber')?'amber':v.includes('green')?'green':'tv';applyMode();return print('DISPLAY: '+mode.toUpperCase())}
 if(v==='ctrl'||v==='controls'||v==='settings'){return print('DISPLAY: GREEN  AMBER  TV\nSCANLINES 150  (0-300)\nGLOW 150       (0-300)\nSIZE 12        (6-24)\n\nTYPE A SETTING AND VALUE, E.G. GLOW 200.')}
 const setting=v.match(/^(scanlines|glow|size)\s+(\d+)$/);if(setting){const key=setting[1],num=Number(setting[2]),control=$(key==='scanlines'?'scan':key);if(num<Number(control.min)||num>Number(control.max))return print('OUT OF RANGE: '+control.min+'-'+control.max);control.value=String(num);control.dispatchEvent(new Event('input'));return print(key.toUpperCase()+': '+num)}
-if(['help','?'].includes(v))return print('LOOK  NORTH  SOUTH  EXAMINE  TAKE\nINVENTORY  TALK  OPEN  REMEMBER\nCLEAR  RESTART\n\nDISPLAY: GREEN  AMBER  TV\nCTRL: DISPLAY SETTINGS\n\nTRY EXAMINE LEDGER OR TALK CLERK.');
+if(['help','?'].includes(v))return print('LOOK  NORTH  SOUTH  EXAMINE  TAKE\nINVENTORY  TALK  OPEN  REMEMBER\nCLEAR  RESTART\n\nTRY EXAMINE LEDGER OR TALK CLERK.');
 if(v==='clear'){out.textContent='';return}
 if(v==='restart')return boot();
 if(v==='look'||v==='l')return print(rooms[state.room]+(state.door?'\n\nAN EIGHTH DOOR IS OPEN.':''));
