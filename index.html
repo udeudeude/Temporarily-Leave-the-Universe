@@ -131,6 +131,11 @@ html,body{background:#010401}
 #settings{display:none!important}
 #screen{padding-top:calc(env(safe-area-inset-top) + 12px)!important}
 #splash{padding-top:calc(env(safe-area-inset-top) + 12px)!important}
+
+/* Composite TV has its own neutral/purple corner illumination, not green. */
+#shell.tv #screen{--corner-glow:rgba(175,145,255,.28);--edge:rgba(205,190,240,.48);--edge-soft:rgba(150,115,235,.26);--edge-faint:rgba(150,115,235,.11)}
+#shell.tv #screen::before{background:radial-gradient(ellipse 28% 19% at 0% 0%,var(--corner-glow),transparent 98%),radial-gradient(ellipse 28% 19% at 100% 0%,var(--corner-glow),transparent 98%),radial-gradient(ellipse 28% 19% at 0% 100%,var(--corner-glow),transparent 98%),radial-gradient(ellipse 28% 19% at 100% 100%,var(--corner-glow),transparent 98%)!important;box-shadow:inset 0 0 7px 1px rgba(205,190,240,.35)!important}
+#shell.tv #screen{box-shadow:inset 0 0 3px 2px var(--edge),inset 0 0 13px 4px var(--edge-soft),inset 0 0 36px 8px var(--edge-faint)!important}
 </style></head><body><main id="shell"><header id="bar"><strong>EAMON</strong><button id="theme" type="button" aria-label="Cycle display mode">AMBER</button><button id="gear" type="button" aria-label="Display controls" aria-expanded="false">CTRL</button></header><aside id="settings" aria-label="Terminal settings"><label>Scanlines <input id="scan" type="range" min="0" max="300" value="150"></label><label>Glow <input id="glow" type="range" min="0" max="100" value="50"></label><label>Text size <input id="size" type="range" min="6" max="18" value="12"></label><button id="reset" type="button">RESET DEMO</button></aside><section id="screen" aria-label="Text adventure terminal"><div id="splash" aria-label="Eamon opening screen"><div class="splash-layout"><div class="splash-intro"><div>Welcome to</div><div class="splash-title">EAMON</div><p>The computerized<br>fantasy role-playing<br>system designed for<br>the Apple II.</p></div><img class="dragon" src="dragon.svg" alt="Dragon illustration"></div><div class="splash-credit">EAMON is a creation of Donald Brown<br>Non-commercial distribution welcomed</div><div class="continue">PRESS RETURN TO CONTINUE</div></div><pre id="output" aria-live="polite"></pre><form id="entry" autocomplete="off"><span id="prompt">]</span><input id="command" aria-label="Type a command" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="go"></form></section><footer id="footer"><span>READY</span><button id="focus" type="button">TYPE</button><button id="help" type="button">HELP</button></footer></main>
 <script>
 (()=>{'use strict';
@@ -154,9 +159,9 @@ let splash=true;
 function boot(){splash=true;$('splash').classList.add('visible');state={room:'hall',inventory:[],door:false,done:false};out.textContent=''}
 function execute(raw){let t=raw.trim(),v=t.toLowerCase();if(splash){splash=false;$('splash').classList.remove('visible');out.textContent='';print('TEMPORARILY LEAVE THE UNIVERSE\n\nDISK 01 - THE MUSEUM\nCOPYRIGHT 1985+21\n\n'+rooms.hall+'\n\nTYPE HELP FOR COMMANDS.');return}print('> '+t.toUpperCase());if(!v)return;
 if(['green','amber','tv','t.v.','display green','display amber','display tv','display t.v.'].includes(v)){mode=v.includes('amber')?'amber':v.includes('green')?'green':'tv';applyMode();return print('DISPLAY: '+mode.toUpperCase())}
-if(v==='ctrl'||v==='controls'||v==='settings'){return print('DISPLAY: GREEN / AMBER / TV\\nSCANLINES 0-300\\nGLOW 0-300\\nSIZE 6-24\\nUSE: SCANLINES 150, GLOW 150, SIZE 12.')}
+if(v==='ctrl'||v==='controls'||v==='settings'){return print('DISPLAY: GREEN  AMBER  TV\nSCANLINES 150  (0-300)\nGLOW 150       (0-300)\nSIZE 12        (6-24)\n\nTYPE A SETTING AND VALUE, E.G. GLOW 200.')}
 const setting=v.match(/^(scanlines|glow|size)\s+(\d+)$/);if(setting){const key=setting[1],num=Number(setting[2]),control=$(key==='scanlines'?'scan':key);if(num<Number(control.min)||num>Number(control.max))return print('OUT OF RANGE: '+control.min+'-'+control.max);control.value=String(num);control.dispatchEvent(new Event('input'));return print(key.toUpperCase()+': '+num)}
-if(['help','?'].includes(v))return print('COMMANDS: LOOK, NORTH, SOUTH, EXAMINE, TAKE, INVENTORY, TALK, OPEN, REMEMBER, HELP, CLEAR, RESTART.\nDISPLAY: GREEN, AMBER, TV.\nCTRL FOR DISPLAY SETTINGS.\n\nTRY EXAMINE LEDGER OR TALK CLERK.');
+if(['help','?'].includes(v))return print('LOOK  NORTH  SOUTH  EXAMINE  TAKE\nINVENTORY  TALK  OPEN  REMEMBER\nCLEAR  RESTART\n\nDISPLAY: GREEN  AMBER  TV\nCTRL: DISPLAY SETTINGS\n\nTRY EXAMINE LEDGER OR TALK CLERK.');
 if(v==='clear'){out.textContent='';return}
 if(v==='restart')return boot();
 if(v==='look'||v==='l')return print(rooms[state.room]+(state.door?'\n\nAN EIGHTH DOOR IS OPEN.':''));
