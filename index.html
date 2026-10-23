@@ -112,7 +112,26 @@ html,body{background:#010401}
 #screen{font-size:clamp(12px,3.3vw,17px);line-height:1.35}
 #splash{font-size:clamp(11px,3.1vw,15px)}
 #bar button{font-size:11px}
-#screen::after{background:repeating-linear-gradient(to bottom,transparent 0px,rgba(0,0,0,.04) 1px,rgba(0,0,0,var(--scan-dark,.56)) 2px,rgba(0,0,0,.12) 3px)!important;opacity:1!important}</style></head><body><main id="shell"><header id="bar"><strong>EAMON</strong><button id="theme" type="button" aria-label="Cycle display mode">AMBER</button><button id="gear" type="button" aria-label="Display controls" aria-expanded="false">CTRL</button></header><aside id="settings" aria-label="Terminal settings"><label>Scanlines <input id="scan" type="range" min="0" max="300" value="150"></label><label>Glow <input id="glow" type="range" min="0" max="100" value="50"></label><label>Text size <input id="size" type="range" min="6" max="18" value="12"></label><button id="reset" type="button">RESET DEMO</button></aside><section id="screen" aria-label="Text adventure terminal"><div id="splash" aria-label="Eamon opening screen"><div class="splash-layout"><div class="splash-intro"><div>Welcome to</div><div class="splash-title">EAMON</div><p>The computerized<br>fantasy role-playing<br>system designed for<br>the Apple II.</p></div><img class="dragon" src="dragon.svg" alt="Dragon illustration"></div><div class="splash-credit">EAMON is a creation of Donald Brown<br>Non-commercial distribution welcomed</div><div class="continue">PRESS RETURN TO CONTINUE</div></div><pre id="output" aria-live="polite"></pre><form id="entry" autocomplete="off"><span id="prompt">]</span><input id="command" aria-label="Type a command" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="go"></form></section><footer id="footer"><span>READY</span><button id="focus" type="button">TYPE</button><button id="help" type="button">HELP</button></footer></main>
+#screen::after{background:repeating-linear-gradient(to bottom,transparent 0px,rgba(0,0,0,.04) 1px,rgba(0,0,0,var(--scan-dark,.56)) 2px,rgba(0,0,0,.12) 3px)!important;opacity:1!important}
+/* Final pass: legible lightweight terminal, isolated splash, corner-focused bloom. */
+#screen,#output,#command,#splash{font-family:"Courier New",monospace!important;font-weight:400!important;letter-spacing:0!important}
+#screen{font-size:clamp(13px,3.5vw,18px)!important;line-height:1.4!important}
+#splash{font-size:clamp(10px,2.7vw,14px)!important;line-height:1.25!important;background:var(--glass)!important;isolation:isolate;z-index:8!important}
+#splash .splash-layout{display:grid;grid-template-columns:36% 64%;max-width:550px;gap:0;align-items:start}
+#splash .splash-intro{font-size:inherit;overflow-wrap:normal;word-break:normal;white-space:normal}
+#splash .splash-intro p{font-size:inherit;line-height:1.3}
+#splash .dragon{width:100%;height:auto;max-height:260px}
+#splash .splash-credit{clear:both;margin-top:14px;font-size:inherit;line-height:1.35}
+#splash .continue{margin-top:20px}
+#screen{--corner-glow:rgba(90,235,100,.22)}
+#shell.amber #screen{--corner-glow:rgba(255,174,0,.23)}
+#shell.tv #screen{--corner-glow:rgba(160,140,230,.18)}
+#screen::before{box-shadow:inset 0 0 5px 1px var(--edge-soft)!important;background:radial-gradient(ellipse 24% 15% at 0% 0%,var(--corner-glow),transparent 98%),radial-gradient(ellipse 24% 15% at 100% 0%,var(--corner-glow),transparent 98%),radial-gradient(ellipse 24% 15% at 0% 100%,var(--corner-glow),transparent 98%),radial-gradient(ellipse 24% 15% at 100% 100%,var(--corner-glow),transparent 98%);pointer-events:none}
+#bar{display:none!important}
+#settings{display:none!important}
+#screen{padding-top:calc(env(safe-area-inset-top) + 12px)!important}
+#splash{padding-top:calc(env(safe-area-inset-top) + 12px)!important}
+</style></head><body><main id="shell"><header id="bar"><strong>EAMON</strong><button id="theme" type="button" aria-label="Cycle display mode">AMBER</button><button id="gear" type="button" aria-label="Display controls" aria-expanded="false">CTRL</button></header><aside id="settings" aria-label="Terminal settings"><label>Scanlines <input id="scan" type="range" min="0" max="300" value="150"></label><label>Glow <input id="glow" type="range" min="0" max="100" value="50"></label><label>Text size <input id="size" type="range" min="6" max="18" value="12"></label><button id="reset" type="button">RESET DEMO</button></aside><section id="screen" aria-label="Text adventure terminal"><div id="splash" aria-label="Eamon opening screen"><div class="splash-layout"><div class="splash-intro"><div>Welcome to</div><div class="splash-title">EAMON</div><p>The computerized<br>fantasy role-playing<br>system designed for<br>the Apple II.</p></div><img class="dragon" src="dragon.svg" alt="Dragon illustration"></div><div class="splash-credit">EAMON is a creation of Donald Brown<br>Non-commercial distribution welcomed</div><div class="continue">PRESS RETURN TO CONTINUE</div></div><pre id="output" aria-live="polite"></pre><form id="entry" autocomplete="off"><span id="prompt">]</span><input id="command" aria-label="Type a command" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="go"></form></section><footer id="footer"><span>READY</span><button id="focus" type="button">TYPE</button><button id="help" type="button">HELP</button></footer></main>
 <script>
 (()=>{'use strict';
 const $=id=>document.getElementById(id),out=$('output'),cmd=$('command'),screen=$('screen');let amber=false,tv=false,history=[],hi=0;
@@ -132,9 +151,9 @@ const dragon=[
 '     /_____/  \\_/  \\_/'
 ].join('\n');
 let splash=true;
-function boot(){splash=true;$('splash').classList.add('visible');state={room:'hall',inventory:[],door:false,done:false};out.textContent='';print('THE WONDERFUL WORLD OF EAMON\n\n'+dragon+'\n\nPRESS RETURN TO CONTINUE.\n\nCOPYRIGHT 1985+21')}
+function boot(){splash=true;$('splash').classList.add('visible');state={room:'hall',inventory:[],door:false,done:false};out.textContent=''}
 function execute(raw){let t=raw.trim(),v=t.toLowerCase();if(splash){splash=false;$('splash').classList.remove('visible');out.textContent='';print('TEMPORARILY LEAVE THE UNIVERSE\n\nDISK 01 - THE MUSEUM\nCOPYRIGHT 1985+21\n\n'+rooms.hall+'\n\nTYPE HELP FOR COMMANDS.');return}print('> '+t.toUpperCase());if(!v)return;
-if(['help','?'].includes(v))return print('COMMANDS: LOOK, NORTH, SOUTH, EXAMINE, TAKE, INVENTORY, TALK, OPEN, REMEMBER, HELP, CLEAR, RESTART.\n\nTRY EXAMINE LEDGER OR TALK CLERK.');
+if(['green','amber','tv','t.v.','display green','display amber','display tv','display t.v.'].includes(v)){mode=v.includes('amber')?'amber':v.includes('green')?'green':'tv';applyMode();return print('DISPLAY: '+mode.toUpperCase())}\nif(v==='ctrl'||v==='controls'||v==='settings'){return print('DISPLAY: GREEN / AMBER / TV\\nSCANLINES 0-300\\nGLOW 0-300\\nSIZE 6-24\\nUSE: SCANLINES 150, GLOW 150, SIZE 12.')}\nconst setting=v.match(/^(scanlines|glow|size)\\s+(\\d+)$/);if(setting){const key=setting[1],num=Number(setting[2]),control=$(key==='scanlines'?'scan':key);if(num<Number(control.min)||num>Number(control.max))return print('OUT OF RANGE: '+control.min+'-'+control.max);control.value=String(num);control.dispatchEvent(new Event('input'));return print(key.toUpperCase()+': '+num)}\nif(['help','?'].includes(v))return print('COMMANDS: LOOK, NORTH, SOUTH, EXAMINE, TAKE, INVENTORY, TALK, OPEN, REMEMBER, HELP, CLEAR, RESTART.\nDISPLAY: GREEN, AMBER, TV.\nCTRL FOR DISPLAY SETTINGS.\n\nTRY EXAMINE LEDGER OR TALK CLERK.');
 if(v==='clear'){out.textContent='';return}
 if(v==='restart')return boot();
 if(v==='look'||v==='l')return print(rooms[state.room]+(state.door?'\n\nAN EIGHTH DOOR IS OPEN.':''));
