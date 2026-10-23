@@ -163,63 +163,17 @@ html,body{background:#010401}
 /* Scanlines belong to the fixed glass, not the scrolling document. */
 #screen::after{display:none!important}
 #shell::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:7;background:repeating-linear-gradient(to bottom,transparent 0px,rgba(0,0,0,.04) 1px,rgba(0,0,0,var(--scan-dark,.56)) 2px,rgba(0,0,0,.12) 3px);opacity:1}
-</style></head><body><main id="shell"><header id="bar"><strong>EAMON</strong><button id="theme" type="button" aria-label="Cycle display mode">AMBER</button><button id="gear" type="button" aria-label="Display controls" aria-expanded="false">CTRL</button></header><aside id="settings" aria-label="Terminal settings"><label>Scanlines <input id="scan" type="range" min="0" max="300" value="150"></label><label>Glow <input id="glow" type="range" min="0" max="100" value="50"></label><label>Text size <input id="size" type="range" min="6" max="18" value="12"></label><button id="reset" type="button">RESET DEMO</button></aside><section id="screen" aria-label="Text adventure terminal"><div id="splash" aria-label="Eamon opening screen"><div class="splash-layout"><div class="splash-intro"><div>Welcome to</div><div class="splash-title">EAMON</div><p>The computerized<br>fantasy role-playing<br>system designed for<br>the Apple II.</p></div><img class="dragon" src="dragon.svg" alt="Dragon illustration"></div><div class="splash-credit">EAMON is a creation of Donald Brown<br>Non-commercial distribution welcomed</div><div class="continue">PRESS RETURN TO CONTINUE</div></div><pre id="output" aria-live="polite"></pre><form id="entry" autocomplete="off"><span id="prompt">]</span><input id="command" aria-label="Type a command" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="go"></form></section><footer id="footer"><span>READY</span><button id="focus" type="button">TYPE</button><button id="help" type="button">HELP</button></footer></main>
-<script>
-(()=>{'use strict';
-const $=id=>document.getElementById(id),out=$('output'),cmd=$('command'),screen=$('screen');let amber=false,tv=false,history=[],hi=0;
-let state={room:'hall',inventory:[],door:false,done:false};
-const rooms={hall:'YOU ARE IN THE MAIN HALL.\n\nA CLERK IS COUNTING DOORS. THERE ARE SEVEN. HIS LEDGER SAYS EIGHT.\n\nA SIGN READS: EXHIBIT 1 - THE VERB MERCHANT.\n\nEXITS: NORTH.',shop:'THE VERB MERCHANT\n\nA SMALL MAN SITS BEHIND A COUNTER.\n\nHE SELLS WORDS IN GLASS JARS.\n\nA JAR MARKED OPEN IS EMPTY.\nA JAR MARKED REMEMBER IS FULL.\n\nEXITS: SOUTH.'};
-function print(s=''){out.textContent+=(out.textContent?'\n':'')+s;requestAnimationFrame(()=>screen.scrollTop=screen.scrollHeight)}
-const dragon=[
-'             /\\     /\\',
-'        /\\  /  \\___/  \\',
-'       /  \\/           \\',
-'      /       /\\    /\\  \\',
-'     /___    (  )  (  )  |',
-'         \\       ^      /',
-'          \\   \\___/    /',
-'       ____/            /',
-'      /     /\\   /\\   /',
-'     /_____/  \\_/  \\_/'
-].join('\n');
-let splash=true;
-function boot(){splash=true;$('splash').classList.add('visible');state={room:'hall',inventory:[],door:false,done:false};out.textContent=''}
-function execute(raw){let t=raw.trim(),v=t.toLowerCase();if(splash){splash=false;$('splash').classList.remove('visible');out.textContent='';print('TEMPORARILY LEAVE THE UNIVERSE\n\nDISK 01 - THE MUSEUM\nCOPYRIGHT 1985+21\n\n'+rooms.hall+'\n\nTYPE HELP FOR COMMANDS.');return}print('> '+t.toUpperCase());if(!v)return;
-if(['green','amber','tv','t.v.','display green','display amber','display tv','display t.v.'].includes(v)){mode=v.includes('amber')?'amber':v.includes('green')?'green':'tv';applyMode();return print('DISPLAY: '+mode.toUpperCase())}
-if(v==='ctrl'||v==='controls'||v==='settings'){return print('DISPLAY: GREEN  AMBER  TV\nSCANLINES 150  (0-300)\nGLOW 150       (0-300)\nSIZE 12        (6-24)\n\nTYPE A SETTING AND VALUE, E.G. GLOW 200.')}
-const setting=v.match(/^(scanlines|glow|size)\s+(\d+)$/);if(setting){const key=setting[1],num=Number(setting[2]),control=$(key==='scanlines'?'scan':key);if(num<Number(control.min)||num>Number(control.max))return print('OUT OF RANGE: '+control.min+'-'+control.max);control.value=String(num);control.dispatchEvent(new Event('input'));return print(key.toUpperCase()+': '+num)}
-if(['help','?'].includes(v))return print('LOOK  NORTH  SOUTH  EXAMINE  TAKE\nINVENTORY  TALK  OPEN  REMEMBER\nCLEAR  RESTART  CTRL\n\nTRY EXAMINE LEDGER OR TALK CLERK.');
-if(v==='clear'){out.textContent='';return}
-if(v==='restart')return boot();
-if(v==='look'||v==='l')return print(rooms[state.room]+(state.door?'\n\nAN EIGHTH DOOR IS OPEN.':''));
-if(v==='inventory'||v==='i')return print(state.inventory.length?'YOU CARRY: '+state.inventory.join(', ').toUpperCase():'YOU ARE EMPTY-HANDED.');
-if(v==='north'||v==='n'||v==='go north'){if(state.room==='hall'){state.room='shop';return print(rooms.shop)}return print('THERE IS NO EXIT NORTH.')}
-if(v==='south'||v==='s'||v==='go south'){if(state.room==='shop'){state.room='hall';return print(rooms.hall)}return print('THERE IS NO EXIT SOUTH.')}
-if(v.startsWith('talk'))return print(state.room==='hall'?'"THE EIGHTH DOOR IS NOT MISSING," SAYS THE CLERK. "IT HAS NOT YET BEEN COUNTED."':'"THE WORD REMEMBER IS FREE," SAYS THE MERCHANT. "BUT YOU MUST CARRY IT YOURSELF."');
-if(/^(look|examine|inspect|look at) (at )?(clerk|man|merchant|bartender)$/.test(v)){return print(state.room==='hall'?'THE CLERK IS KEEPING A CAREFUL COUNT OF THE DOORS. HIS LEDGER IS OPEN ON THE DESK.':'THE MERCHANT IS A SMALL MAN WITH INK-STAINED FINGERS. HE WATCHES HIS JARS CLOSELY.')}
-if(v.includes('ledger')&&(v.startsWith('examine')||v.startsWith('read')||v.startsWith('look')))return print('SEVEN DOORS ARE LISTED. THE EIGHTH ENTRY READS: REMEMBER.');
-if(v.includes('jar')||v.includes('counter'))return print(state.room==='shop'?'THE REMEMBER JAR HAS NO LID.':'YOU SEE NOTHING OF THE SORT.');
-if(v==='take remember'||v==='take word'||v==='take jar'){if(state.room!=='shop')return print('YOU SEE NO SUCH THING.');if(!state.inventory.includes('remember'))state.inventory.push('remember');return print('YOU TAKE THE WORD REMEMBER. IT WEIGHS ALMOST NOTHING.')}
-if(v==='remember'){if(!state.inventory.includes('remember'))return print('YOU CANNOT REMEMBER WHAT YOU DO NOT POSSESS.');if(state.room==='hall'){state.door=true;return print('THE CLERK COUNTS AGAIN.\n\nONE. TWO. THREE. FOUR. FIVE. SIX. SEVEN. EIGHT.\n\nAN EIGHTH DOOR APPEARS.\n\nTYPE OPEN DOOR.')}return print('YOU REMEMBER A DOOR THAT IS NOT HERE.')}
-if(v==='open door'){if(state.room==='hall'&&state.door){state.done=true;return print('THE EIGHTH DOOR OPENS ONTO THE MAIN HALL.\n\nYOU HAVE COMPLETED THE FIRST IMPOSSIBLE ADVENTURE.\n\nTHE CLERK MAKES A SMALL MARK IN HIS LEDGER.\n\nEND OF DEMONSTRATION.')}return print('YOU CANNOT OPEN THAT.')}
-if(v.startsWith('examine')||v.startsWith('look at'))return print('YOU FIND NOTHING UNUSUAL. WHICH IS UNUSUAL.');
-return print("I DON'T UNDERSTAND THAT COMMAND.");
+
+/* Color the actual vector silhouette, not just its outer glow. */
+#splash .dragon-vector{
+ display:block;position:relative;width:100%;height:auto;aspect-ratio:177/175;
+ max-height:none;background:var(--dragon-ink,#77ef70);
+ -webkit-mask:url("dragon.svg") center/contain no-repeat;
+ mask:url("dragon.svg") center/contain no-repeat;
+ filter:none!important;
 }
-cmd.addEventListener('input',()=>document.getElementById('entry').classList.toggle('has-text',cmd.value.length>0));
-$('entry').addEventListener('submit',e=>{e.preventDefault();const t=cmd.value;cmd.value='';$('entry').classList.remove('has-text');if(t.trim()){history.push(t.toUpperCase());hi=history.length}execute(t);cmd.focus()});
-cmd.addEventListener('keydown',e=>{if(e.key==='ArrowUp'){e.preventDefault();if(hi>0)cmd.value=history[--hi]||''}if(e.key==='ArrowDown'){e.preventDefault();if(hi<history.length)hi++;cmd.value=history[hi]||''}});
-const modes=['green','amber','tv'];let mode=modes.includes(localStorage.getItem('tltu-theme'))?localStorage.getItem('tltu-theme'):'green';
-function applyMode(){amber=mode==='amber';tv=mode==='tv';$('shell').classList.toggle('tv',tv);$('shell').classList.toggle('amber',amber);document.documentElement.style.setProperty('--ink',tv?'#f5f5f5':amber?'#ffbf00':'#77ef70');const strength=Math.min(1,Number($('glow').value)/180);document.documentElement.style.setProperty('--glow',tv?'rgba(245,245,245,'+strength+')':amber?'rgba(255,176,0,'+strength+')':'rgba(85,235,75,'+strength+')');$('theme').textContent=mode==='green'?'AMBER':mode==='amber'?'T.V.':'GREEN';$('theme').setAttribute('aria-label','Display: '+mode.toUpperCase()+'. Change to '+$('theme').textContent);localStorage.setItem('tltu-theme',mode)}
-$('theme').onclick=()=>{mode=modes[(modes.indexOf(mode)+1)%3];applyMode()};applyMode();
-$('gear').onclick=()=>{const open=$('settings').classList.toggle('open');$('gear').setAttribute('aria-expanded',String(open))};
-$('scan').oninput=e=>document.documentElement.style.setProperty('--scan-dark',(Number(e.target.value)/300*.94).toFixed(3));$('scan').dispatchEvent(new Event('input'));
-$('glow').oninput=()=>applyMode();
-$('size').oninput=e=>screen.style.fontSize=e.target.value+'px';
-$('reset').onclick=()=>{boot();$('settings').classList.remove('open')};
-$('focus').onclick=()=>cmd.focus();$('help').onclick=()=>{execute('help');cmd.focus()};
-screen.addEventListener('click',e=>{if(e.target===screen||e.target===out)cmd.focus()});
-if(window.visualViewport){const resize=()=>{document.getElementById('shell').style.height=window.visualViewport.height+'px';document.getElementById('shell').style.top=window.visualViewport.offsetTop+'px';screen.scrollTop=screen.scrollHeight};window.visualViewport.addEventListener('resize',resize);window.visualViewport.addEventListener('scroll',resize);resize()}
-$('splash').addEventListener('click',()=>{execute('');cmd.focus()});
-boot();
-})();
-</script></body></html>
+#shell.tv #splash .dragon-vector{filter:drop-shadow(-1px 0 #d5474c) drop-shadow(1px 0 #287cfd)!important}
+#splash .splash-layout{align-items:start}
+#splash .splash-credit{margin-top:14px}
+</style></head><body><main id="shell"><header id="bar"><strong>EAMON</strong><button id="theme" type="button" aria-label="Cycle display mode">AMBER</button><button id="gear" type="button" aria-label="Display controls" aria-expanded="false">CTRL</button></header><aside id="settings" aria-label="Terminal settings"><label>Scanlines <input id="scan" type="range" min="0" max="300" value="150"></label><label>Glow <input id="glow" type="range" min="0" max="100" value="50"></label><label>Text size <input id="size" type="range" min="6" max="18" value="12"></label><button id="reset" type="button">RESET DEMO</button></aside><section id="screen" aria-label="Text adventure terminal"><div id="splash" aria-label="Eamon opening screen"><div class="splash-layout"><div class="splash-intro"><div>Welcome to</div><div class="splash-title">EAMON</div><p>The computerized<br>fantasy role-playing<br>system designed for<br>the Apple II.</p></div><div class="dragon dragon-vector" role="img" aria-label="Vector tracing of the original Eamon dragon"></div></div><div class="splash-credit">EAMON is a creation of Donald Brown<br>Non-commercial distribution welcomed</div><div class="continue">PRESS RETURN TO CONTINUE</div></div><pre id="output" aria-live="polite"></pre><form id="entry" autocomplete="off"><span id="prompt">]</span><input id="command" aria-label="Type a command" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="go"></form></section><footer id="footer"><span>READY</span><button id="focus" type="button">TYPE</button><button id="help" type="button">HELP</button></footer></main>
+<script src="adventures.js"></script></body></html>
