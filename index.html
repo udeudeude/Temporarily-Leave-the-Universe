@@ -192,6 +192,7 @@ if(v==='inventory'||v==='i')return print(state.inventory.length?'YOU CARRY: '+st
 if(v==='north'||v==='n'||v==='go north'){if(state.room==='hall'){state.room='shop';return print(rooms.shop)}return print('THERE IS NO EXIT NORTH.')}
 if(v==='south'||v==='s'||v==='go south'){if(state.room==='shop'){state.room='hall';return print(rooms.hall)}return print('THERE IS NO EXIT SOUTH.')}
 if(v.startsWith('talk'))return print(state.room==='hall'?'"THE EIGHTH DOOR IS NOT MISSING," SAYS THE CLERK. "IT HAS NOT YET BEEN COUNTED."':'"THE WORD REMEMBER IS FREE," SAYS THE MERCHANT. "BUT YOU MUST CARRY IT YOURSELF."');
+if(/^(look|examine|inspect|look at) (at )?(clerk|man|merchant|bartender)$/.test(v)){return print(state.room==='hall'?'THE CLERK IS KEEPING A CAREFUL COUNT OF THE DOORS. HIS LEDGER IS OPEN ON THE DESK.':'THE MERCHANT IS A SMALL MAN WITH INK-STAINED FINGERS. HE WATCHES HIS JARS CLOSELY.')}
 if(v.includes('ledger')&&(v.startsWith('examine')||v.startsWith('read')||v.startsWith('look')))return print('SEVEN DOORS ARE LISTED. THE EIGHTH ENTRY READS: REMEMBER.');
 if(v.includes('jar')||v.includes('counter'))return print(state.room==='shop'?'THE REMEMBER JAR HAS NO LID.':'YOU SEE NOTHING OF THE SORT.');
 if(v==='take remember'||v==='take word'||v==='take jar'){if(state.room!=='shop')return print('YOU SEE NO SUCH THING.');if(!state.inventory.includes('remember'))state.inventory.push('remember');return print('YOU TAKE THE WORD REMEMBER. IT WEIGHS ALMOST NOTHING.')}
