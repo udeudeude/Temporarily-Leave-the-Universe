@@ -30,6 +30,16 @@ let state,history=[],hi=0,splashOn=true,mode='green',hintStep=0;
 function fresh(){return {room:'museum',done:[],flags:{},visits:0,history:[]}}
 function loadPlayer(){try{return JSON.parse(localStorage.getItem(playerKey))}catch{return null}}
 function savePlayer(){try{localStorage.setItem(playerKey,JSON.stringify(player))}catch{}}
+function factoryReset(){
+ if(!confirm('INITIALIZE ALL DISKS?\n\nTHIS ERASES YOUR ADVENTURER, ALL EIGHT ADVENTURE RECORDS, JOURNAL, COMMAND HISTORY, AND DISPLAY PREFERENCES.\n\nTHIS CANNOT BE UNDONE.'))return;
+ try{[key,playerKey,modeKey].forEach(k=>localStorage.removeItem(k))}catch{}
+ state=fresh();player=null;history=[];hi=0;pendingDisk=null;booting=false;
+ stage='register';splashOn=true;mode='green';input.value='';entry.classList.remove('has-text');
+ $('scan').value='150';$('glow').value='150';$('size').value='12';screen.style.fontSize='';
+ $('scan').dispatchEvent(new Event('input'));applyMode();
+ try{localStorage.removeItem(modeKey)}catch{}
+ out.textContent='';splash.classList.add('visible');screen.scrollTop=0;
+}
 function playerName(){return player&&player.name?player.name:'ADVENTURER'}
 function hall(){return [
 'THE MAIN HALL',
@@ -165,19 +175,21 @@ if(!v)return;
 print('> '+raw.toUpperCase().trim());
 if(stage==='register'){player={name:raw.trim().toUpperCase().slice(0,24),hardiness:16,agility:13,charisma:11,gold:200,weapon:'NONE',spell:'NONE'};savePlayer();stage='hall';print('WELCOME TO THE GUILD, '+player.name+'.\n\n'+hall());return}
 if(stage==='loading')return;
-if(stage==='departed'){if(['return','enter','restart','hall'].includes(v)){stage='hall';print(hall())}else print('THE GUILD IS WAITING. TYPE RETURN.');return}
+if(stage==='departed'){if(v==='initialize'||v==='init'||v==='reset all'||v==='factory reset'){factoryReset();return}if(['return','enter','restart','hall'].includes(v)){stage='hall';print(hall())}else print('THE GUILD IS WAITING. TYPE RETURN.');return}
 const setting=control(v);if(setting!==null){print(setting);return}
 if(v==='clear'){out.textContent='';return}
-if(v==='restart'){if(confirm('ERASE THE ADVENTURER AND ALL COMPLETED ADVENTURES?')){state=fresh();save();player=null;localStorage.removeItem(playerKey);stage='register';out.textContent='';print('WHAT IS YOUR NAME?')}return}
-if(v==='help'||v==='?'){print(stage==='hall'?'CHOOSE 1-6.\nLOOK  TALK  CHARACTER  CTRL':stage==='shelf'?'TYPE A DISK NUMBER, OR HALL.':help());return}
+if(v==='restart'){print('TO RESTART THE CURRENT SESSION, TYPE HALL.\nTO ERASE ALL HISTORY AND START FROM THE FIRST BOOT, TYPE INITIALIZE.');return}
+if(v==='initialize'||v==='init'||v==='reset all'||v==='factory reset'){factoryReset();return}
+if(v==='help'||v==='?'){print(stage==='hall'?'CHOOSE 1-6.\nLOOK  TALK  CHARACTER  CTRL  INITIALIZE':stage==='shelf'?'TYPE A DISK NUMBER, OR HALL.':help());return}
 if(v==='journal'||v==='status'){print(status());return}
+if(v==='initialize'||v==='init'||v==='reset all'||v==='factory reset'){factoryReset();return}
 if(v==='hall'&&stage!=='adventure'){stage='hall';print(hall());return}
-if(stage==='hall'){if(!hallCommand(v))print('CHOOSE 1-6, OR TYPE HELP.');return}
+if(stage==='hall'){if(v==='initialize'||v==='init'||v==='reset all'||v==='factory reset'){factoryReset();return}if(!hallCommand(v))print('CHOOSE 1-6, OR TYPE HELP.');return}
 if(stage==='shop'){if(v==='buy sword'||v==='buy club'){let cost=v==='buy sword'?40:15;if(player.gold<cost){print('NOT ENOUGH GOLD.');return}player.gold-=cost;player.weapon=v==='buy sword'?'SWORD':'CLUB';savePlayer();print('PURCHASED '+player.weapon+'. GOLD REMAINING: '+player.gold);return}print('TYPE BUY SWORD, BUY CLUB, OR HALL.');return}
 if(stage==='magic'){if(v==='learn blast'){if(player.gold<60){print('NOT ENOUGH GOLD.');return}player.gold-=60;player.spell='BLAST';savePlayer();print('YOU LEARN BLAST. THE WIZARD ASKS YOU NOT TO PRACTICE IN THE HALL.');return}print('TYPE LEARN BLAST OR HALL.');return}
 if(stage==='ninth'){if(v==='accept'){stage='hall';player.title='CURATOR';savePlayer();print('THE GUILD REGISTRY ADDS A NEW LINE:\n\n'+playerName()+', CURATOR OF IMPOSSIBLE ADVENTURES.\n\nTHE NINTH DISKETTE IS BLANK. IT IS WAITING FOR SOMEONE TO WRITE IT.\n\n'+hall());return}if(v==='decline'){stage='hall';print('THE DISK DRIVE FALLS SILENT.\n\n'+hall());return}print('TYPE ACCEPT OR DECLINE.');return}
 if(stage==='bank'||stage==='abilities'){print('TYPE HALL TO RETURN.');return}
-if(stage==='shelf'){if((v==='9'||v==='09'||v==='disk 9')&&state.done.length===8){stage='ninth';print('DISK DRIVE 1 WHIRS WITHOUT A DISK.\n\nTHE SCREEN READS:\n\nTHE CURATOR HAS TEMPORARILY LEFT THE UNIVERSE.\n\nSOMEONE MUST MIND THE HALL.\n\nTYPE ACCEPT OR DECLINE.');return}let m=v.match(/^(?:insert |disk |load )?0?([1-8])$/);if(m){bootDisk(Number(m[1])-1);return}if(v==='look'){print(shelf());return}print('CHOOSE A DISK NUMBER (1-8), OR HALL.');return}
+if(stage==='shelf'){if(v==='initialize'||v==='init'||v==='reset all'||v==='factory reset'){factoryReset();return}if((v==='9'||v==='09'||v==='disk 9')&&state.done.length===8){stage='ninth';print('DISK DRIVE 1 WHIRS WITHOUT A DISK.\n\nTHE SCREEN READS:\n\nTHE CURATOR HAS TEMPORARILY LEFT THE UNIVERSE.\n\nSOMEONE MUST MIND THE HALL.\n\nTYPE ACCEPT OR DECLINE.');return}let m=v.match(/^(?:insert |disk |load )?0?([1-8])$/);if(m){bootDisk(Number(m[1])-1);return}if(v==='look'){print(shelf());return}print('CHOOSE A DISK NUMBER (1-8), OR HALL.');return}
 if(v==='hint'){if(stage!=='adventure'){print('THE GUILD OFFERS NO HINTS.');return}let i=state.room;if(i==='museum'){print('EACH DOOR HAS ITS OWN RULES. TYPE A NUMBER TO ENTER.');return}let n=flagHint(i);print(hints[i][n]);return}
 if(v==='inventory'||v==='i'){print(stage==='hall'?'WEAPON: '+player.weapon+'\nGOLD: '+player.gold:state.room==='museum'?(state.done.length?'YOU CARRY '+state.done.length+' IMPOSSIBLE SOUVENIRS.':'YOU ARE CARRYING AN UNFINISHED ADVENTURE.'):objects[state.room].length?'YOU CARRY:\n'+objects[state.room].join('\n'):'YOU CARRY YOURSELF.');return}
 if(v==='leave'||v==='exit'||v==='museum'||v==='back'||v==='south'&&state.room!=='museum'){finishAdventure();return}
