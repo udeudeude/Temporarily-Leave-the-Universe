@@ -67,7 +67,7 @@ function bootDisk(i){
  const lines=['\n*DISK VOLUME '+String(i+1).padStart(3,'0'),' A 002 HELLO',' B 015 ADVENTURE',' T 004 READ.ME','\nBRUN ADVENTURE'];
  let n=0;const step=()=>{if(stage!=='loading'||pendingDisk!==i)return;if(n<lines.length){print(lines[n++]);setTimeout(step,n===lines.length?350:115)}else{stage='adventure';booting=false;state.room=i;state.visits++;save();out.textContent='';print('THE WONDERFUL WORLD OF EAMON\n\n'+diskLabels[i]+'\n\n'+showRoom());}};setTimeout(step,260)
 }
-function finishAdventure(){stage='shelf';state.room='museum';save();print('\nTHE DISK DRIVE STOPS.\n\nYOUR ADVENTURER RETURNS TO THE GUILD.\n\n'+shelf())}
+function finishAdventure(){stage='hall';state.room='museum';save();out.textContent='';print('THE DISK DRIVE STOPS.\n\nYOUR ADVENTURER RETURNS TO THE MAIN HALL.\n\n'+hall())}
 function hallCommand(v){
  if(v==='1'||v==='adventure'||v==='adventures'||v==='go adventuring'){stage='shelf';print(shelf());return true}
  if(v==='2'||v==='shop'||v==='weapon shop'){print('THE WEAPON SHOP\n\nA SWORD COSTS 40 GOLD.\nA CLUB COSTS 15 GOLD.\nTYPE BUY SWORD OR BUY CLUB.\nTYPE HALL TO RETURN.');stage='shop';return true}
