@@ -108,7 +108,7 @@ function normalize(s){return s.toLowerCase().trim().replace(/\s+/g,' ').replace(
 function control(t){
 const v=normalize(t);
 if(['green','amber','tv','t.v.','display green','display amber','display tv','display t.v.'].includes(v)){mode=v.includes('amber')?'amber':v.includes('green')?'green':'tv';applyMode();return 'DISPLAY: '+mode.toUpperCase()}
-if(['ctrl','controls','settings'].includes(v))return 'DISPLAY: GREEN  AMBER  TV\nSCANLINES '+$('scan').value+' (0-300)\nGLOW '+$('glow').value+' (0-300)\nSIZE '+$('size').value+' (6-24)\n\nE.G. GLOW 200\n\nINITIALIZE: ERASE ALL HISTORY';
+if(['ctrl','controls','settings'].includes(v))return 'TYPE ONE OF THESE COMMANDS:\n\nGREEN / AMBER / TV\nSCANLINES 0-300  [NOW '+$('scan').value+']\nGLOW 0-300       [NOW '+$('glow').value+']\nSIZE 6-24        [NOW '+$('size').value+']\n\nEXAMPLE: GLOW 200\n\nINITIALIZE  [ERASE ALL HISTORY]';
 const m=v.match(/^(scanlines|glow|size)\s+(\d+)$/);
 if(m){const el=$(m[1]==='scanlines'?'scan':m[1]);let n=+m[2];if(n<+el.min||n>+el.max)return 'RANGE: '+el.min+'-'+el.max;el.value=n;el.dispatchEvent(new Event('input'));return m[1].toUpperCase()+': '+n}
 return null;
