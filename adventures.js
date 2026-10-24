@@ -1,5 +1,5 @@
 (()=>{'use strict';
-const $=id=>document.getElementById(id),screen=$('screen'),out=$('output'),input=$('command'),entry=$('entry'),splash=$('splash');
+const $=id=>document.getElementById(id),screen=$('screen'),out=$('output'),input=$('command'),entry=$('entry'),splash=$('splash'),typed=$('typed');
 const key='tltu-museum-2',modeKey='tltu-theme';
 const playerKey='tltu-adventurer-1';
 let player=null,stage='hall',pendingDisk=null,booting=false;
@@ -34,11 +34,11 @@ function factoryReset(){
  if(!confirm('INITIALIZE ALL DISKS?\n\nTHIS ERASES YOUR ADVENTURER, ALL EIGHT ADVENTURE RECORDS, JOURNAL, COMMAND HISTORY, AND DISPLAY PREFERENCES.\n\nTHIS CANNOT BE UNDONE.'))return;
  try{[key,playerKey,modeKey].forEach(k=>localStorage.removeItem(k))}catch{}
  state=fresh();player=null;history=[];hi=0;pendingDisk=null;booting=false;
- stage='register';splashOn=true;mode='green';input.value='';entry.classList.remove('has-text');
+ stage='register';splashOn=true;mode='green';input.value='';syncCursor();entry.classList.remove('has-text');
  $('scan').value='150';$('glow').value='150';$('size').value='12';screen.style.fontSize='';
  $('scan').dispatchEvent(new Event('input'));applyMode();
  try{localStorage.removeItem(modeKey)}catch{}
- out.textContent='';splash.classList.add('visible');screen.scrollTop=0;
+ out.textContent='';syncCursor();splash.classList.add('visible');screen.scrollTop=0;
 }
 function playerName(){return player&&player.name?player.name:'ADVENTURER'}
 function hall(){return [
@@ -92,6 +92,7 @@ function hallCommand(v){
 }
 function load(){try{let x=JSON.parse(localStorage.getItem(key));return x&&Array.isArray(x.done)&&x.flags?x:fresh()}catch{return fresh()}}
 function save(){try{localStorage.setItem(key,JSON.stringify(state))}catch{}}
+function syncCursor(){typed.textContent=input.value.toUpperCase()}
 function print(t=''){out.textContent+=(out.textContent?'\n':'')+t;requestAnimationFrame(()=>screen.scrollTop=screen.scrollHeight)}
 function status(){return 'EXHIBITS COMPLETED: '+state.done.length+'/8'+(state.done.length?'\n'+state.done.map(n=>(n+1)+'. '+names[n]).join('\n'):'')}
 function museum(){
@@ -183,6 +184,8 @@ if(v==='restart'){print('TO RETURN TO THE MAIN HALL, TYPE HALL.\nFOR SYSTEM OPTI
 if(v==='initialize'||v==='init'||v==='reset all'||v==='factory reset'){factoryReset();return}
 if(v==='help'||v==='?'){print(stage==='hall'?'CHOOSE 1-6.\nLOOK  TALK  INVENTORY  CTRL':stage==='shelf'?'TYPE A DISK NUMBER, OR HALL.':help().replace('RESTART  CLEAR  CTRL','RESTART  CLEAR  CTRL'));return}
 if(v==='journal'||v==='status'){print(status());return}
+if((v==='inventory'||v==='inv'||v==='i')&&stage==='hall'){print('WEAPON: '+player.weapon+'\nGOLD: '+player.gold+'\nSPELL: '+player.spell);return}
+if((v==='inventory'||v==='inv'||v==='i')&&stage==='abilities'){print('WEAPON: '+player.weapon+'\nGOLD: '+player.gold+'\nSPELL: '+player.spell);return}
 if(v==='initialize'||v==='init'||v==='reset all'||v==='factory reset'){factoryReset();return}
 if(v==='hall'&&stage!=='adventure'){stage='hall';print(hall());return}
 if(stage==='hall'){if(v==='initialize'||v==='init'||v==='reset all'||v==='factory reset'){factoryReset();return}if(!hallCommand(v))print('CHOOSE 1-6, OR TYPE HELP.');return}
@@ -223,8 +226,8 @@ $('scan').oninput=e=>document.documentElement.style.setProperty('--scan-dark',(+
 $('glow').oninput=applyMode;
 $('size').oninput=e=>{screen.style.fontSize=e.target.value+'px'};
 $('scan').dispatchEvent(new Event('input'));applyMode();
-entry.addEventListener('submit',e=>{e.preventDefault();let t=input.value;input.value='';entry.classList.remove('has-text');if(t.trim()){history.push(t);hi=history.length}run(t);input.focus()});
-input.addEventListener('input',()=>entry.classList.toggle('has-text',!!input.value));
+entry.addEventListener('submit',e=>{e.preventDefault();let t=input.value;input.value='';syncCursor();entry.classList.remove('has-text');if(t.trim()){history.push(t);hi=history.length}run(t);input.focus()});
+input.addEventListener('input',()=>{syncCursor();syncCursor();entry.classList.toggle('has-text',!!input.value)});
 input.addEventListener('keydown',e=>{if(e.key==='ArrowUp'){e.preventDefault();input.value=history[Math.max(0,--hi)]||''}if(e.key==='ArrowDown'){e.preventDefault();input.value=history[Math.min(history.length,++hi)]||''}entry.classList.toggle('has-text',!!input.value)});
 screen.addEventListener('click',e=>{if(splashOn){run('');input.focus()}else if(e.target===screen||e.target===out){input.focus()}});
 splash.addEventListener('click',e=>{e.stopPropagation();run('');input.focus()});
