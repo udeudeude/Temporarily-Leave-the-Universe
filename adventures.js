@@ -38,7 +38,7 @@ function hall(){return [
 'WELCOME, '+playerName()+'.',
 '',
 'A BURLY IRISHMAN POLISHES A GLASS.',
-'THE FIREPLACE HAS NOT BEEN LIT SINCE 1985.',
+'THE FIREPLACE HAS NOT BEEN LIT SINCE 1985.',...(state.done.length?['','ON THE MANTEL: '+state.done.length+' OBJECT'+(state.done.length===1?'':'S')+' THAT SHOULD NOT EXIST.']:[]),
 '',
 '1. GO ON AN ADVENTURE',
 '2. VISIT THE WEAPON SHOP',
@@ -59,8 +59,8 @@ function shelf(){return [
 'TYPE A NUMBER TO INSERT A DISK.',
 'OR TYPE HALL TO RETURN.',
 '',
-'* COMPLETED ADVENTURE'].join('\n')}
-function character(){return ['ADVENTURER: '+playerName(),'HARDINESS: '+player.hardiness,'AGILITY: '+player.agility,'CHARISMA: '+player.charisma,'GOLD: '+player.gold,'WEAPON: '+player.weapon,'SPELL: '+player.spell,'','ADVENTURES COMPLETED: '+state.done.length,'','TYPE HALL TO RETURN.'].join('\n')}
+'* COMPLETED ADVENTURE',...(state.done.length===8?['','09  [UNLABELED DISKETTE]']:[])].join('\n')}
+function character(){return ['ADVENTURER: '+playerName()+(player.title?' / '+player.title:''),'HARDINESS: '+player.hardiness,'AGILITY: '+player.agility,'CHARISMA: '+player.charisma,'GOLD: '+player.gold,'WEAPON: '+player.weapon,'SPELL: '+player.spell,'','ADVENTURES COMPLETED: '+state.done.length,'','TYPE HALL TO RETURN.'].join('\n')}
 function bootDisk(i){
  pendingDisk=i;stage='loading';booting=true;out.textContent='';
  print('INSERTING DISKETTE INTO DRIVE 1...\n\n'+String(i+1).padStart(2,'0')+' / '+diskLabels[i]+'\n\nAPPLE DOS 3.3\n\nCATALOG');
@@ -175,8 +175,9 @@ if(v==='hall'&&stage!=='adventure'){stage='hall';print(hall());return}
 if(stage==='hall'){if(!hallCommand(v))print('CHOOSE 1-6, OR TYPE HELP.');return}
 if(stage==='shop'){if(v==='buy sword'||v==='buy club'){let cost=v==='buy sword'?40:15;if(player.gold<cost){print('NOT ENOUGH GOLD.');return}player.gold-=cost;player.weapon=v==='buy sword'?'SWORD':'CLUB';savePlayer();print('PURCHASED '+player.weapon+'. GOLD REMAINING: '+player.gold);return}print('TYPE BUY SWORD, BUY CLUB, OR HALL.');return}
 if(stage==='magic'){if(v==='learn blast'){if(player.gold<60){print('NOT ENOUGH GOLD.');return}player.gold-=60;player.spell='BLAST';savePlayer();print('YOU LEARN BLAST. THE WIZARD ASKS YOU NOT TO PRACTICE IN THE HALL.');return}print('TYPE LEARN BLAST OR HALL.');return}
+if(stage==='ninth'){if(v==='accept'){stage='hall';player.title='CURATOR';savePlayer();print('THE GUILD REGISTRY ADDS A NEW LINE:\n\n'+playerName()+', CURATOR OF IMPOSSIBLE ADVENTURES.\n\nTHE NINTH DISKETTE IS BLANK. IT IS WAITING FOR SOMEONE TO WRITE IT.\n\n'+hall());return}if(v==='decline'){stage='hall';print('THE DISK DRIVE FALLS SILENT.\n\n'+hall());return}print('TYPE ACCEPT OR DECLINE.');return}
 if(stage==='bank'||stage==='abilities'){print('TYPE HALL TO RETURN.');return}
-if(stage==='shelf'){let m=v.match(/^(?:insert |disk |load )?0?([1-8])$/);if(m){bootDisk(Number(m[1])-1);return}if(v==='look'){print(shelf());return}print('CHOOSE A DISK NUMBER (1-8), OR HALL.');return}
+if(stage==='shelf'){if((v==='9'||v==='09'||v==='disk 9')&&state.done.length===8){stage='ninth';print('DISK DRIVE 1 WHIRS WITHOUT A DISK.\n\nTHE SCREEN READS:\n\nTHE CURATOR HAS TEMPORARILY LEFT THE UNIVERSE.\n\nSOMEONE MUST MIND THE HALL.\n\nTYPE ACCEPT OR DECLINE.');return}let m=v.match(/^(?:insert |disk |load )?0?([1-8])$/);if(m){bootDisk(Number(m[1])-1);return}if(v==='look'){print(shelf());return}print('CHOOSE A DISK NUMBER (1-8), OR HALL.');return}
 if(v==='hint'){if(stage!=='adventure'){print('THE GUILD OFFERS NO HINTS.');return}let i=state.room;if(i==='museum'){print('EACH DOOR HAS ITS OWN RULES. TYPE A NUMBER TO ENTER.');return}let n=flagHint(i);print(hints[i][n]);return}
 if(v==='inventory'||v==='i'){print(stage==='hall'?'WEAPON: '+player.weapon+'\nGOLD: '+player.gold:state.room==='museum'?(state.done.length?'YOU CARRY '+state.done.length+' IMPOSSIBLE SOUVENIRS.':'YOU ARE CARRYING AN UNFINISHED ADVENTURE.'):objects[state.room].length?'YOU CARRY:\n'+objects[state.room].join('\n'):'YOU CARRY YOURSELF.');return}
 if(v==='leave'||v==='exit'||v==='museum'||v==='back'||v==='south'&&state.room!=='museum'){finishAdventure();return}
