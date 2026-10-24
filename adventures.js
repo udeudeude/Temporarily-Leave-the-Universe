@@ -108,7 +108,7 @@ const i=state.room,flag=state.flags,progress=x=>{flag['progress'+i]=x;save();ret
 if(state.done.includes(i)&&['look','l'].includes(v))return showRoom()+'\n\nTHIS ADVENTURE HAS ALREADY BEEN COMPLETED.';
 switch(i){
 case 0:
- if(/^(count|examine|look at) (room|walls|doors|exits)$/.test(v))return progress('THE MAN COUNTS FORTY-SEVEN DOORS. THEN HE COUNTS YOU. HE LOOKS PLEASED.');
+ if(/^(examine|look at) (room|walls|doors|exits)$/.test(v))return progress('THE MAN COUNTS FORTY-SEVEN DOORS. THEN HE COUNTS YOU. HE LOOKS PLEASED.');
  if(v==='ring bell'||v==='take bell')return 'THE BELL RINGS ONCE. EVERY DOOR OPENS ONTO THIS ROOM.';
  if(['count myself','count me','count adventurer','count the room','count room','forty eight','48','count 48'].includes(v))return finish(i,'THE MAN RINGS HIS BELL. "FORTY-EIGHT," HE SAYS. ALL THE DOORS VANISH. THERE IS NOW AN EXIT WHERE YOU WERE STANDING.');
  if(/^go |^enter |^\d+$/.test(v))return 'YOU PASS THROUGH AN EXIT AND ARRIVE IN THE SAME ROOM. THE MAN MARKS A SMALL TICK ON HIS CUFF.';
