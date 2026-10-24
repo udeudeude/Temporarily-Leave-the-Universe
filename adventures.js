@@ -1,6 +1,9 @@
 (()=>{'use strict';
 const $=id=>document.getElementById(id),screen=$('screen'),out=$('output'),input=$('command'),entry=$('entry'),splash=$('splash');
 const key='tltu-museum-2',modeKey='tltu-theme';
+const playerKey='tltu-adventurer-1';
+let player=null,stage='hall',pendingDisk=null,booting=false;
+const diskLabels=['THE FORTY-SEVENTH EXIT','THE VERB MERCHANT','THE MONSTER\'S ADVENTURE','THE INVENTORY OF LOST THINGS','THE CARTOGRAPHER\'S ERROR','THE DUNGEON OF UNFINISHED SENTENCES','THE LAST HIT POINT','THE ADVENTURE THAT WAS ALREADY WON'];
 const names=['THE FORTY-SEVENTH EXIT','THE VERB MERCHANT',"THE MONSTER'S ADVENTURE",'THE INVENTORY OF LOST THINGS',"THE CARTOGRAPHER'S ERROR",'THE DUNGEON OF UNFINISHED SENTENCES','THE LAST HIT POINT','THE ADVENTURE THAT WAS ALREADY WON'];
 const intro=[
 'FORTY-SEVEN EXITS ARE CUT INTO THE WALL OF A SINGLE ROOM. THE ROOM HAS NO WINDOWS. A MAN WITH A BELL SAYS HE HAS BEEN WAITING FOR THE FORTY-EIGHTH.',
@@ -25,6 +28,57 @@ const hints=[
 const objects=[[],['REMEMBER'],['A SCRIPT'],['A SMALL KEY','A RECEIPT FOR RAIN','A CHILDHOOD YOU NEVER HAD'],['A PERFECT MAP'],['A PERIOD'],['ONE HIT POINT'],['A TROPHY']];
 let state,history=[],hi=0,splashOn=true,mode='green',hintStep=0;
 function fresh(){return {room:'museum',done:[],flags:{},visits:0,history:[]}}
+function loadPlayer(){try{return JSON.parse(localStorage.getItem(playerKey))}catch{return null}}
+function savePlayer(){try{localStorage.setItem(playerKey,JSON.stringify(player))}catch{}}
+function playerName(){return player&&player.name?player.name:'ADVENTURER'}
+function hall(){return [
+'THE MAIN HALL',
+'OF THE GUILD OF FREE ADVENTURERS',
+'',
+'WELCOME, '+playerName()+'.',
+'',
+'A BURLY IRISHMAN POLISHES A GLASS.',
+'THE FIREPLACE HAS NOT BEEN LIT SINCE 1985.',
+'',
+'1. GO ON AN ADVENTURE',
+'2. VISIT THE WEAPON SHOP',
+'3. LEARN MAGIC',
+'4. VISIT THE BANK',
+'5. EXAMINE YOUR ABILITIES',
+'6. TEMPORARILY LEAVE THE UNIVERSE',
+'',
+'CHOOSE 1-6.'].join('\n')}
+function shelf(){return [
+'DRIVE 1 IS EMPTY.',
+'',
+'THE GUILD KEEPS A WOODEN CASE OF',
+'ADVENTURE DISKETTES.',
+'',
+...diskLabels.map((n,i)=>String(i+1).padStart(2,'0')+'  '+n+(state.done.includes(i)?' *':'')),
+'',
+'TYPE A NUMBER TO INSERT A DISK.',
+'OR TYPE HALL TO RETURN.',
+'',
+'* COMPLETED ADVENTURE'].join('\n')}
+function character(){return ['ADVENTURER: '+playerName(),'HARDINESS: '+player.hardiness,'AGILITY: '+player.agility,'CHARISMA: '+player.charisma,'GOLD: '+player.gold,'WEAPON: '+player.weapon,'SPELL: '+player.spell,'','ADVENTURES COMPLETED: '+state.done.length,'','TYPE HALL TO RETURN.'].join('\n')}
+function bootDisk(i){
+ pendingDisk=i;stage='loading';booting=true;out.textContent='';
+ print('INSERTING DISKETTE INTO DRIVE 1...\n\n'+String(i+1).padStart(2,'0')+' / '+diskLabels[i]+'\n\nAPPLE DOS 3.3\n\nCATALOG');
+ const lines=['\n*DISK VOLUME '+String(i+1).padStart(3,'0'),' A 002 HELLO',' B 015 ADVENTURE',' T 004 READ.ME','\nBRUN ADVENTURE'];
+ let n=0;const step=()=>{if(stage!=='loading'||pendingDisk!==i)return;if(n<lines.length){print(lines[n++]);setTimeout(step,n===lines.length?350:115)}else{stage='adventure';booting=false;state.room=i;state.visits++;save();out.textContent='';print('THE WONDERFUL WORLD OF EAMON\n\n'+diskLabels[i]+'\n\n'+showRoom());}};setTimeout(step,260)
+}
+function finishAdventure(){stage='shelf';state.room='museum';save();print('\nTHE DISK DRIVE STOPS.\n\nYOUR ADVENTURER RETURNS TO THE GUILD.\n\n'+shelf())}
+function hallCommand(v){
+ if(v==='1'||v==='adventure'||v==='adventures'||v==='go adventuring'){stage='shelf';print(shelf());return true}
+ if(v==='2'||v==='shop'||v==='weapon shop'){print('THE WEAPON SHOP\n\nA SWORD COSTS 40 GOLD.\nA CLUB COSTS 15 GOLD.\nTYPE BUY SWORD OR BUY CLUB.\nTYPE HALL TO RETURN.');stage='shop';return true}
+ if(v==='3'||v==='magic'||v==='wizard'){stage='magic';print('A WIZARD OFFERS TO TEACH YOU BLAST.\nTUITION: 60 GOLD.\n\nTYPE LEARN BLAST OR HALL.');return true}
+ if(v==='4'||v==='bank'){stage='bank';print('THE BANKER IS COUNTING GOLD.\nYOU HAVE '+player.gold+' GOLD.\n\nTYPE HALL TO RETURN.');return true}
+ if(v==='5'||v==='abilities'||v==='character'){print(character());stage='abilities';return true}
+ if(v==='6'||v==='quit'||v==='leave universe'){stage='departed';print('THE BURLY IRISHMAN SLAPS YOU ON THE BACK.\n\n"Y\'ALL COME BACK REAL SOON, YA HEAH?"\n\nYOUR ADVENTURER HAS BEEN SAVED.\n\nTYPE RETURN WHEN YOU COME BACK.');return true}
+ if(v==='look'||v==='l'){print(hall());return true}
+ if(v.startsWith('talk')){print('"ADVENTURES DON\'T COME TO YOU," SAYS THE BARTENDER. "UNLESS SOMETHING HAS GONE VERY WRONG."');return true}
+ return false
+}
 function load(){try{let x=JSON.parse(localStorage.getItem(key));return x&&Array.isArray(x.done)&&x.flags?x:fresh()}catch{return fresh()}}
 function save(){try{localStorage.setItem(key,JSON.stringify(state))}catch{}}
 function print(t=''){out.textContent+=(out.textContent?'\n':'')+t;requestAnimationFrame(()=>screen.scrollTop=screen.scrollHeight)}
@@ -106,17 +160,26 @@ return "THAT DOESN'T SEEM TO WORK HERE. TRY EXAMINING SOMETHING, TALKING, OR USI
 }
 function run(raw){
 const v=normalize(raw);
-if(splashOn){splashOn=false;splash.classList.remove('visible');out.textContent='';print(museum());return}
+if(splashOn){splashOn=false;splash.classList.remove('visible');out.textContent='';if(!player){stage='register';print('THE WONDERFUL WORLD OF EAMON\n\nTHE GUILD REGISTRAR LOOKS UP.\n\nWHAT IS YOUR NAME?')}else{stage='hall';print(hall())}return}
 if(!v)return;
 print('> '+raw.toUpperCase().trim());
+if(stage==='register'){player={name:raw.trim().toUpperCase().slice(0,24),hardiness:16,agility:13,charisma:11,gold:200,weapon:'NONE',spell:'NONE'};savePlayer();stage='hall';print('WELCOME TO THE GUILD, '+player.name+'.\n\n'+hall());return}
+if(stage==='loading')return;
+if(stage==='departed'){if(['return','enter','restart','hall'].includes(v)){stage='hall';print(hall())}else print('THE GUILD IS WAITING. TYPE RETURN.');return}
 const setting=control(v);if(setting!==null){print(setting);return}
 if(v==='clear'){out.textContent='';return}
-if(v==='restart'){if(confirm('START OVER AND ERASE COMPLETED EXHIBITS?')){state=fresh();save();out.textContent='';print(museum())}return}
-if(v==='help'||v==='?'){print(help());return}
+if(v==='restart'){if(confirm('ERASE THE ADVENTURER AND ALL COMPLETED ADVENTURES?')){state=fresh();save();player=null;localStorage.removeItem(playerKey);stage='register';out.textContent='';print('WHAT IS YOUR NAME?')}return}
+if(v==='help'||v==='?'){print(stage==='hall'?'CHOOSE 1-6.\nLOOK  TALK  CHARACTER  CTRL':stage==='shelf'?'TYPE A DISK NUMBER, OR HALL.':help());return}
 if(v==='journal'||v==='status'){print(status());return}
-if(v==='hint'){let i=state.room;if(i==='museum'){print('EACH DOOR HAS ITS OWN RULES. TYPE A NUMBER TO ENTER.');return}let n=flagHint(i);print(hints[i][n]);return}
-if(v==='inventory'||v==='i'){print(state.room==='museum'?(state.done.length?'YOU CARRY '+state.done.length+' IMPOSSIBLE SOUVENIRS.':'YOU ARE CARRYING AN UNFINISHED ADVENTURE.'):objects[state.room].length?'YOU CARRY:\n'+objects[state.room].join('\n'):'YOU CARRY YOURSELF.');return}
-if(v==='leave'||v==='exit'||v==='museum'||v==='back'||v==='south'&&state.room!=='museum'){state.room='museum';hintStep=0;save();print(museum());return}
+if(v==='hall'&&stage!=='adventure'){stage='hall';print(hall());return}
+if(stage==='hall'){if(!hallCommand(v))print('CHOOSE 1-6, OR TYPE HELP.');return}
+if(stage==='shop'){if(v==='buy sword'||v==='buy club'){let cost=v==='buy sword'?40:15;if(player.gold<cost){print('NOT ENOUGH GOLD.');return}player.gold-=cost;player.weapon=v==='buy sword'?'SWORD':'CLUB';savePlayer();print('PURCHASED '+player.weapon+'. GOLD REMAINING: '+player.gold);return}print('TYPE BUY SWORD, BUY CLUB, OR HALL.');return}
+if(stage==='magic'){if(v==='learn blast'){if(player.gold<60){print('NOT ENOUGH GOLD.');return}player.gold-=60;player.spell='BLAST';savePlayer();print('YOU LEARN BLAST. THE WIZARD ASKS YOU NOT TO PRACTICE IN THE HALL.');return}print('TYPE LEARN BLAST OR HALL.');return}
+if(stage==='bank'||stage==='abilities'){print('TYPE HALL TO RETURN.');return}
+if(stage==='shelf'){let m=v.match(/^(?:insert |disk |load )?0?([1-8])$/);if(m){bootDisk(Number(m[1])-1);return}if(v==='look'){print(shelf());return}print('CHOOSE A DISK NUMBER (1-8), OR HALL.');return}
+if(v==='hint'){if(stage!=='adventure'){print('THE GUILD OFFERS NO HINTS.');return}let i=state.room;if(i==='museum'){print('EACH DOOR HAS ITS OWN RULES. TYPE A NUMBER TO ENTER.');return}let n=flagHint(i);print(hints[i][n]);return}
+if(v==='inventory'||v==='i'){print(stage==='hall'?'WEAPON: '+player.weapon+'\nGOLD: '+player.gold:state.room==='museum'?(state.done.length?'YOU CARRY '+state.done.length+' IMPOSSIBLE SOUVENIRS.':'YOU ARE CARRYING AN UNFINISHED ADVENTURE.'):objects[state.room].length?'YOU CARRY:\n'+objects[state.room].join('\n'):'YOU CARRY YOURSELF.');return}
+if(v==='leave'||v==='exit'||v==='museum'||v==='back'||v==='south'&&state.room!=='museum'){finishAdventure();return}
 if(state.room==='museum'){
 if(/^[1-8]$/.test(v)||/^enter [1-8]$/.test(v)){const i=Number(v.slice(-1))-1;state.room=i;hintStep=0;state.visits++;save();print(showRoom());return}
 if(v==='9'||v==='nine'){print(state.done.length===8?'BEHIND THE NINTH DOOR IS A CHAIR. IT IS STILL WARM. A NOTE READS: "THE CURATOR HAS TEMPORARILY LEFT THE UNIVERSE."':'THERE ARE ONLY EIGHT DOORS. THE CURATOR SEEMS TO BE SAVING A SPACE.');return}
@@ -141,7 +204,7 @@ document.documentElement.style.setProperty('--dragon-ink',ink);
 try{localStorage.setItem(modeKey,mode)}catch{}
 }
 function start(){
-state=load();mode=['green','amber','tv'].includes(localStorage.getItem(modeKey))?localStorage.getItem(modeKey):'green';
+state=load();player=loadPlayer();mode=['green','amber','tv'].includes(localStorage.getItem(modeKey))?localStorage.getItem(modeKey):'green';
 $('scan').oninput=e=>document.documentElement.style.setProperty('--scan-dark',(+e.target.value/300*.94).toFixed(3));
 $('glow').oninput=applyMode;
 $('size').oninput=e=>{screen.style.fontSize=e.target.value+'px'};
