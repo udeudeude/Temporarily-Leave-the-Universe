@@ -48,7 +48,7 @@ function hall(){return [
 'WELCOME, '+playerName()+'.',
 '',
 'A BURLY IRISHMAN POLISHES A GLASS.',
-'THE FIREPLACE HAS NOT BEEN LIT SINCE 1985.',...(state.done.length?['','ON THE MANTEL: '+state.done.length+' OBJECT'+(state.done.length===1?'':'S')+' THAT SHOULD NOT EXIST.']:[]),
+...(state.done.includes(6)?['A FIRE BURNS IN THE HEARTH.','NO ONE REMEMBERS LIGHTING IT.']:['THE FIREPLACE HAS NOT BEEN LIT SINCE 1985.']),...(state.done.length?['','ON THE MANTEL: '+state.done.length+' OBJECT'+(state.done.length===1?'':'S')+' THAT SHOULD NOT EXIST.']:[]),
 '',
 '1. GO ON AN ADVENTURE',
 '2. VISIT THE WEAPON SHOP',
@@ -77,7 +77,7 @@ function bootDisk(i){
  const lines=['\n*DISK VOLUME '+String(i+1).padStart(3,'0'),' A 002 HELLO',' B 015 ADVENTURE',' T 004 READ.ME','\nBRUN ADVENTURE'];
  let n=0;const step=()=>{if(stage!=='loading'||pendingDisk!==i)return;if(n<lines.length){print(lines[n++]);setTimeout(step,n===lines.length?350:115)}else{stage='adventure';booting=false;state.room=i;state.visits++;save();out.textContent='';print('THE WONDERFUL WORLD OF EAMON\n\n'+diskLabels[i]+'\n\n'+showRoom());}};setTimeout(step,260)
 }
-function finishAdventure(){stage='hall';state.room='museum';save();out.textContent='';print('THE DISK DRIVE STOPS.\n\nYOUR ADVENTURER RETURNS TO THE MAIN HALL.\n\n'+hall())}
+function finishAdventure(){stage='hall';state.room='museum';save();out.textContent='';print('THE DISK DRIVE STOPS.\n\nYOUR ADVENTURER RETURNS TO THE MAIN HALL.'+(state.done.includes(6)&&!state.flags.fireNoticed?'\n\nA SOFT CRACKLE COMES FROM THE HEARTH.\nFOR THE FIRST TIME SINCE 1985, THERE IS A FIRE.':'')+'\n\n'+hall());if(state.done.includes(6)&&!state.flags.fireNoticed){state.flags.fireNoticed=true;save()}}
 function hallCommand(v){
  if(v==='1'||v==='adventure'||v==='adventures'||v==='go adventuring'){stage='shelf';print(shelf());return true}
  if(v==='2'||v==='shop'||v==='weapon shop'){print('THE WEAPON SHOP\n\nA SWORD COSTS 40 GOLD.\nA CLUB COSTS 15 GOLD.\nTYPE BUY SWORD OR BUY CLUB.\nTYPE HALL TO RETURN.');stage='shop';return true}
@@ -86,6 +86,7 @@ function hallCommand(v){
  if(v==='5'||v==='abilities'||v==='character'){print(character());stage='abilities';return true}
  if(v==='6'||v==='quit'||v==='leave universe'){stage='departed';print('THE BURLY IRISHMAN SLAPS YOU ON THE BACK.\n\n"Y\'ALL COME BACK REAL SOON, YA HEAH?"\n\nYOUR ADVENTURER HAS BEEN SAVED.\n\nTYPE RETURN WHEN YOU COME BACK.');return true}
  if(v==='look'||v==='l'){print(hall());return true}
+ if(v==='examine fireplace'||v==='look fireplace'||v==='look at fireplace'){print(state.done.includes(6)?'A SMALL FIRE BURNS WITHOUT FUEL. ITS LIGHT MAKES THE HALL SEEM OLDER AND NEWER AT ONCE.':'THE ASHES ARE COLD. SOMEONE HAS LEFT A SINGLE EMPTY SPACE AMONG THE COALS, AS THOUGH EXPECTING AN EMBER.');return true}
  if(v.startsWith('talk')){print('"ADVENTURES DON\'T COME TO YOU," SAYS THE BARTENDER. "UNLESS SOMETHING HAS GONE VERY WRONG."');return true}
  return false
 }
@@ -107,7 +108,7 @@ function normalize(s){return s.toLowerCase().trim().replace(/\s+/g,' ').replace(
 function control(t){
 const v=normalize(t);
 if(['green','amber','tv','t.v.','display green','display amber','display tv','display t.v.'].includes(v)){mode=v.includes('amber')?'amber':v.includes('green')?'green':'tv';applyMode();return 'DISPLAY: '+mode.toUpperCase()}
-if(['ctrl','controls','settings'].includes(v))return 'DISPLAY: GREEN  AMBER  TV\nSCANLINES '+$('scan').value+' (0-300)\nGLOW '+$('glow').value+' (0-300)\nSIZE '+$('size').value+' (6-24)\n\nE.G. GLOW 200';
+if(['ctrl','controls','settings'].includes(v))return 'DISPLAY: GREEN  AMBER  TV\nSCANLINES '+$('scan').value+' (0-300)\nGLOW '+$('glow').value+' (0-300)\nSIZE '+$('size').value+' (6-24)\n\nE.G. GLOW 200\n\nINITIALIZE: ERASE ALL HISTORY';
 const m=v.match(/^(scanlines|glow|size)\s+(\d+)$/);
 if(m){const el=$(m[1]==='scanlines'?'scan':m[1]);let n=+m[2];if(n<+el.min||n>+el.max)return 'RANGE: '+el.min+'-'+el.max;el.value=n;el.dispatchEvent(new Event('input'));return m[1].toUpperCase()+': '+n}
 return null;
@@ -178,9 +179,9 @@ if(stage==='loading')return;
 if(stage==='departed'){if(v==='initialize'||v==='init'||v==='reset all'||v==='factory reset'){factoryReset();return}if(['return','enter','restart','hall'].includes(v)){stage='hall';print(hall())}else print('THE GUILD IS WAITING. TYPE RETURN.');return}
 const setting=control(v);if(setting!==null){print(setting);return}
 if(v==='clear'){out.textContent='';return}
-if(v==='restart'){print('TO RESTART THE CURRENT SESSION, TYPE HALL.\nTO ERASE ALL HISTORY AND START FROM THE FIRST BOOT, TYPE INITIALIZE.');return}
+if(v==='restart'){print('TO RETURN TO THE MAIN HALL, TYPE HALL.\nFOR SYSTEM OPTIONS, TYPE CTRL.');return}
 if(v==='initialize'||v==='init'||v==='reset all'||v==='factory reset'){factoryReset();return}
-if(v==='help'||v==='?'){print(stage==='hall'?'CHOOSE 1-6.\nLOOK  TALK  CHARACTER  CTRL  INITIALIZE':stage==='shelf'?'TYPE A DISK NUMBER, OR HALL.':help());return}
+if(v==='help'||v==='?'){print(stage==='hall'?'CHOOSE 1-6.\nLOOK  TALK  INVENTORY  CTRL':stage==='shelf'?'TYPE A DISK NUMBER, OR HALL.':help().replace('RESTART  CLEAR  CTRL','RESTART  CLEAR  CTRL'));return}
 if(v==='journal'||v==='status'){print(status());return}
 if(v==='initialize'||v==='init'||v==='reset all'||v==='factory reset'){factoryReset();return}
 if(v==='hall'&&stage!=='adventure'){stage='hall';print(hall());return}
@@ -191,7 +192,7 @@ if(stage==='ninth'){if(v==='accept'){stage='hall';player.title='CURATOR';savePla
 if(stage==='bank'||stage==='abilities'){print('TYPE HALL TO RETURN.');return}
 if(stage==='shelf'){if(v==='initialize'||v==='init'||v==='reset all'||v==='factory reset'){factoryReset();return}if((v==='9'||v==='09'||v==='disk 9')&&state.done.length===8){stage='ninth';print('DISK DRIVE 1 WHIRS WITHOUT A DISK.\n\nTHE SCREEN READS:\n\nTHE CURATOR HAS TEMPORARILY LEFT THE UNIVERSE.\n\nSOMEONE MUST MIND THE HALL.\n\nTYPE ACCEPT OR DECLINE.');return}let m=v.match(/^(?:insert |disk |load )?0?([1-8])$/);if(m){bootDisk(Number(m[1])-1);return}if(v==='look'){print(shelf());return}print('CHOOSE A DISK NUMBER (1-8), OR HALL.');return}
 if(v==='hint'){if(stage!=='adventure'){print('THE GUILD OFFERS NO HINTS.');return}let i=state.room;if(i==='museum'){print('EACH DOOR HAS ITS OWN RULES. TYPE A NUMBER TO ENTER.');return}let n=flagHint(i);print(hints[i][n]);return}
-if(v==='inventory'||v==='i'){print(stage==='hall'?'WEAPON: '+player.weapon+'\nGOLD: '+player.gold:state.room==='museum'?(state.done.length?'YOU CARRY '+state.done.length+' IMPOSSIBLE SOUVENIRS.':'YOU ARE CARRYING AN UNFINISHED ADVENTURE.'):objects[state.room].length?'YOU CARRY:\n'+objects[state.room].join('\n'):'YOU CARRY YOURSELF.');return}
+if(v==='inventory'||v==='inv'||v==='i'){print(stage==='hall'?'WEAPON: '+player.weapon+'\nGOLD: '+player.gold:state.room==='museum'?(state.done.length?'YOU CARRY '+state.done.length+' IMPOSSIBLE SOUVENIRS.':'YOU ARE CARRYING AN UNFINISHED ADVENTURE.'):objects[state.room].length?'YOU CARRY:\n'+objects[state.room].join('\n'):'YOU CARRY YOURSELF.');return}
 if(v==='leave'||v==='exit'||v==='museum'||v==='back'||v==='south'&&state.room!=='museum'){finishAdventure();return}
 if(state.room==='museum'){
 if(/^[1-8]$/.test(v)||/^enter [1-8]$/.test(v)){const i=Number(v.slice(-1))-1;state.room=i;hintStep=0;state.visits++;save();print(showRoom());return}
